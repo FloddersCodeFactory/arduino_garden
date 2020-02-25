@@ -58,6 +58,7 @@ void setup() {
   pinMode(buttonpin, INPUT);
 }
 
+
 // FUNCTION TO GENERATE COLOR BASED ON VIRTUAL WHEEL
 // https://github.com/NeverPlayLegit/Rainbow-Fader-FastLED/blob/master/rainbow.ino
 CRGB Scroll(int pos) {
@@ -78,6 +79,7 @@ CRGB Scroll(int pos) {
   return color;
   mode = 0; // ASC nach dem return ist eigentlich Schluss - sprich es wird ignoriert ?!
 }
+
 
 // FUNCTION TO GET AND SET COLOR
 // THE ORIGINAL FUNCTION WENT BACKWARDS
