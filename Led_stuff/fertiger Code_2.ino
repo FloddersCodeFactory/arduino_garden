@@ -37,8 +37,8 @@ long post_react = 0; // OLD SPIKE CONVERSION
 // RAINBOW WAVE SETTINGS
 int wheel_speed = 1;
 
-void setup()
-{
+// Arduino SETUP
+void setup() {
   // LED LIGHTING SETUP
   delay( 1000 ); // power-up safety delay
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
@@ -76,8 +76,7 @@ CRGB Scroll(int pos) {
     color.r = 1;
   }
   return color;
-
-  mode = 0;
+  mode = 0; // ASC nach dem return ist eigentlich Schluss - sprich es wird ignoriert ?!
 }
 
 // FUNCTION TO GET AND SET COLOR
@@ -86,11 +85,11 @@ CRGB Scroll(int pos) {
 // https://github.com/NeverPlayLegit/Rainbow-Fader-FastLED/blob/master/rainbow.ino
 
 
-
 // +++ MODES +++ \\
 
-void white_adhs()      // WHITE ADHS
-{
+
+// ADHAS WHITE
+void white_adhs() {
   leds[NUM_LEDS] = CRGB(255, 255, 255);
   delay(100);
   FastLED.show();
@@ -99,8 +98,8 @@ void white_adhs()      // WHITE ADHS
   FastLED.show();
 }
 
-void rainbow()         // RAINBOW
-{
+// RAINBOW
+void rainbow() {
   for(int i = NUM_LEDS - 1; i >= 0; i--) {
     if (i < react)
       leds[i] = Scroll((i * 256 / 50 + k) % 256);
@@ -110,8 +109,8 @@ void rainbow()         // RAINBOW
   FastLED.show();
 }
 
-void color_adhs()
-{
+// ADHS COLOR
+void color_adhs() {
   leds[NUM_LEDS] = CRGB(255, 0, 0); //rot
   delay(70);
   leds[NUM_LEDS] = CRGB(0, 255, 0); //grün
@@ -130,16 +129,18 @@ void color_adhs()
   FastLED.show();
 }
 
-void music_reactive()
-{
+// MUSIC
+void music_reactive() {
   int audio_input = analogRead(audio) *3 - 900; // ADD x2 HERE FOR MORE SENSITIVITY
 
-  if (audio_input > 0)
-  {
-    pre_react = ((long)NUM_LEDS * (long)audio_input) / 30L; // TRANSLATE AUDIO LEVEL TO NUMBER OF LEDs
+  if (audio_input > 0) {
+    // TRANSLATE AUDIO LEVEL TO NUMBER OF LEDs
+    pre_react = ((long)NUM_LEDS * (long)audio_input) / 30L;
 
-    if (pre_react > react) // ONLY ADJUST LEVEL OF LED IF LEVEL HIGHER THAN CURRENT LEVEL
+    // ONLY ADJUST LEVEL OF LED IF LEVEL HIGHER THAN CURRENT LEVEL
+    if (pre_react > react) {
       react = pre_react;
+    }
 
     Serial.print(audio_input);
     Serial.print(" -> ");
@@ -150,64 +151,56 @@ void music_reactive()
 
   rainbow(); // APPLY COLOR
 
-  k = k - wheel_speed; // SPEED OF COLOR WHEEL
-  if (k < 0) // RESET COLOR WHEEL
+  // SPEED OF COLOR WHEEL
+  k = k - wheel_speed;
+
+  // RESET COLOR WHEEL
+  if (k < 0) { // RESET COLOR WHEEL
     k = 255;
+  }
 
   // REMOVE LEDs
   decay_check++;
-  if (decay_check > decay)
-  {
+
+  if (decay_check > decay) {
     decay_check = 0;
-    if (react > 0)
+
+    if (react > 0) {
       react--;
+    }
   }
 }
 
+// Arduino LOOP
+void loop() {
+  // MODE AUSWAHL
+  if (digitalRead(buttonpin) == HIGH) {
 
-
-
-void loop()
-{
-    // MODE AUSWAHL
-  if(digitalRead(buttonpin) == HIGH)
-  {
-    if(mode == 3)
-    {
+    if (mode == 3) {
       mode = 1;
-    } else
-    {
+    } else {
       mode = mode + 1;
     }
   }
 
   Serial.println(mode);
 
-  //---------------------------------------------
-
-
-  switch (mode)
-  {
+  switch (mode) {
     case 0:
-
-    break;
-
+      // undefinde mode
+      break;
     case 1:
       music_reactive();
-    break;
-
+      break;
     case 2:
       rainbow();
-    break;
-
+      break;
     case 3:
-     white_adhs();
-    break;
-
+      white_adhs();
+      break;
     case 4:
       color_adhs();
-    break;
+      break;
   }
-
 
 }
