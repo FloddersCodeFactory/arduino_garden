@@ -42,7 +42,7 @@ void setup()
   // LED LIGHTING SETUP
   delay( 1000 ); // power-up safety delay
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
-  FastLED.setBrightness(  BRIGHTNESS );
+  FastLED.setBrightness( BRIGHTNESS );
 
   // CLEAR LEDS
   for (int i = 0; i < NUM_LEDS; i++)

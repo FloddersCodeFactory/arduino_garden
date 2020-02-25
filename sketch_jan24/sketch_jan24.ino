@@ -1,4 +1,5 @@
 #include <SoftwareSerial.h>
+
 SoftwareSerial mySerial(19, 18); // RX, TX
 
 char val;
@@ -8,6 +9,7 @@ void setup() {
   pinMode(ledpin, OUTPUT);
   Serial.begin(9600);
 }
+
 void loop() {
   if( Serial.available() )
   {
