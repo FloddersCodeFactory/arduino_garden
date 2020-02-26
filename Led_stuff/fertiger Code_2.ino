@@ -81,12 +81,6 @@ CRGB Scroll(int pos) {
 }
 
 
-// FUNCTION TO GET AND SET COLOR
-// THE ORIGINAL FUNCTION WENT BACKWARDS
-// THE MODIFIED FUNCTION SENDS WAVES OUT FROM FIRST LED
-// https://github.com/NeverPlayLegit/Rainbow-Fader-FastLED/blob/master/rainbow.ino
-
-
 // +++ MODES +++ \\
 
 
