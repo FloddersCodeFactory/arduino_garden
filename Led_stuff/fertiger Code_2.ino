@@ -56,6 +56,7 @@ void setup() {
 
   //BUTTON SETUP
   pinMode(buttonpin, INPUT);
+  mode = 0;
 }
 
 
@@ -77,14 +78,12 @@ CRGB Scroll(int pos) {
     color.r = 1;
   }
   return color;
-  mode = 0; // ASC nach dem return ist eigentlich Schluss - sprich es wird ignoriert ?!
-}
 
 
 // +++ MODES +++ \\
 
 
-// ADHAS WHITE
+// ADHS WHITE
 void white_adhs() {
   leds[NUM_LEDS] = CRGB(255, 255, 255);
   delay(100);
@@ -145,7 +144,8 @@ void music_reactive() {
     Serial.println(react);
   }
 
-  rainbow(); // APPLY COLOR
+  // APPLY COLOR
+  rainbow();
 
   // SPEED OF COLOR WHEEL
   k = k - wheel_speed;
