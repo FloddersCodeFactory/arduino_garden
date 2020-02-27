@@ -140,6 +140,42 @@ void printCmdArray(String cmd[]) {
   }
 }
 
+int getDuration(string duration) {
+  // duration: e.g. 3h / 5m
+  int dur[];
+  if (duration.endsWith("ms")) {
+    dur[1] = 1;
+    dur[0] = duration.substring(0, duration.length() - 2).toInt();
+
+  } else if (duration.endsWith("s")) {
+    dur[1] = 2;
+    dur[0] = duration.substring(0, duration.length() - 1).toInt();
+
+  } else if (duration.endsWith("m")) {
+    dur[1] = 3;
+    dur[0] = duration.substring(0, duration.length() - 1).toInt();
+
+  } else if (duration.endsWith("h")) {
+    dur[1] = 4;
+    dur[0] = duration.substring(0, duration.length() - 1).toInt();
+
+  } else if (duration.endsWith("d")) {
+    dur[1] = 5;
+    dur[0] = duration.substring(0, duration.length() - 1).toInt();
+
+  } else {
+    Serial.print("no unit defined");
+  }
+
+  Serial.print(dur[0]);
+  Serial.print(" duration | unit ");
+  Serial.print(dur[1]);
+  Serial.print("\n");
+
+  return dur;
+
+} // getDuration
+
 void execCmdArray(String cmd[]) {
   Serial.print("=> EXECUTING COMMAND");
   Serial.print("\n");
@@ -217,38 +253,7 @@ void execCmdArray(String cmd[]) {
 
   Serial.print("\n");
 
-  // duration + unit => getDurUnit: Array[dur, unit]
-  int unit;
-  int dur;
-  if (cmd[4].endsWith("ms")) {
-    unit = 1;
-    dur = cmd[4].substring(0, cmd[4].length() - 2).toInt();
-
-  } else if (cmd[4].endsWith("s")) {
-    unit = 2;
-    dur = cmd[4].substring(0, cmd[4].length() - 1).toInt();
-
-  } else if (cmd[4].endsWith("m")) {
-    unit = 3;
-    dur = cmd[4].substring(0, cmd[4].length() - 1).toInt();
-
-  } else if (cmd[4].endsWith("h")) {
-    unit = 4;
-    dur = cmd[4].substring(0, cmd[4].length() - 1).toInt();
-
-  } else if (cmd[4].endsWith("d")) {
-    unit = 5;
-    dur = cmd[4].substring(0, cmd[4].length() - 1).toInt();
-
-  } else {
-    Serial.print("no unit defined");
-  }
-
-  Serial.print(dur);
-  Serial.print(" duration | unit ");
-  Serial.print(unit);
-
-  Serial.print("\n");
+  getDuration(int cmd[4]);
 
 } // execCmdArray
 
