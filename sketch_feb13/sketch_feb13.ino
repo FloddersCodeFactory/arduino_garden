@@ -387,3 +387,23 @@ void loop() {
   delay(5000);
 
 } // loop
+
+
+
+/*
+
+trigger => Zeitpunkt an dem was pssieren soll
+
+Szenarien:
+
+  1) mach jetzt X für Y s/m/h
+    - mach jetzt X
+    - nimm aktuelle Uhrzeit und addiere Y
+    - speicher Ergebnis-Uhrzeit in Trigger-Array mit dazugehöriger Aktion !X
+
+  2) mach zu Uhrzeit Z X für Y s/m/h
+    - warte bis Z und mach X
+    - nimm Uhrzeit Z und addiere Y
+    - speicher Ergebnis-Uhrzeit in Trigger-Array mit dazugehöriger Aktion !X
+
+*/
