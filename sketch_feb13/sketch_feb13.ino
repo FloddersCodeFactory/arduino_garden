@@ -80,7 +80,7 @@ String cmd[9] = {}; // command
 // testing
 String message1 = "s1 light on";
 String message2 = "s2 light on 3h";
-String message3 = "s3 light timer 12:8:50";
+String message3 = "s3 light timer 12:08:50";
 String message4 = "s4 water timer 15:00:00 7m";
 String message5 = "s4 temp sim 20 3h"; // temp in celsius
 String message6 = "s4 humid sim 10 5m"; // humidity in percent
@@ -103,6 +103,7 @@ int buildCmdArray(String m, String c, String cmd[]) {
 
   do {
     cp = m.indexOf(c);
+    // if c is found, set hasChar to character position
     hasChar = cp != -1;
 
     if (hasChar) {
@@ -216,7 +217,7 @@ void execCmdArray(String cmd[]) {
 
   Serial.print("\n");
 
-  // duration + unit
+  // duration + unit => getDurUnit: Array[dur, unit]
   int unit;
   int dur;
   if (cmd[4].endsWith("ms")) {
