@@ -1,4 +1,12 @@
+#include <IRremote.h>
+int irPin = 8; //Pin am Arduino Nano für den IR Receiver
+IRrecv irrecv(irPin); //Objekt initialisieren für die IR Übertragung
+decode_results results;
+int IRinput = 0;
+
+
 #include <FastLED.h>
+FASTLED_USING_NAMESPACE
 
 // Arduino Music Visualizer 0.2
 
@@ -10,20 +18,22 @@
 
 // LED LIGHTING SETUP
 #define LED_PIN     7
-#define NUM_LEDS    60
-#define BRIGHTNESS  64
+#define NUM_LEDS    63
+#define BRIGHTNESS  255
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 CRGB leds[NUM_LEDS];
+uint8_t hue = 0;
 
 #define UPDATES_PER_SECOND 100
 
 // AUDIO INPUT SETUP
 int audio = A0;
+int audio_input = 0;
 
 //MODE
-int mode = 0; // 0->nothing, 1->audio reactive, 2->rainbow, 3->white adhs, 4->color adhs
-int buttonpin = 5;
+int modeTS = 0; // 0->nothing, 1->audio reactive, 2->white adhs, 3->color adhs, 4->rainbow
+int buttonpin = 12;
 
 // STANDARD VISUALIZER VARIABLES
 int loop_max = 0;
@@ -37,12 +47,12 @@ long post_react = 0; // OLD SPIKE CONVERSION
 // RAINBOW WAVE SETTINGS
 int wheel_speed = 1;
 
-// Arduino SETUP
-void setup() {
+void setup()
+{
   // LED LIGHTING SETUP
   delay( 1000 ); // power-up safety delay
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
-  FastLED.setBrightness( BRIGHTNESS );
+  FastLED.setBrightness(  BRIGHTNESS );
 
   // CLEAR LEDS
   for (int i = 0; i < NUM_LEDS; i++)
@@ -50,15 +60,17 @@ void setup() {
   FastLED.show();
 
   // SERIAL AND INPUT SETUP
-  Serial.begin(115200);
+  Serial.begin(9600);
   pinMode(audio, INPUT);
   Serial.println("\nListening...");
 
   //BUTTON SETUP
   pinMode(buttonpin, INPUT);
-  mode = 0;
-}
 
+  // IR SETUP
+  pinMode(irPin, INPUT);  //Den IR Pin als Eingang deklarieren.
+  irrecv.enableIRIn(); //Den IR Pin aktivieren
+}
 
 // FUNCTION TO GENERATE COLOR BASED ON VIRTUAL WHEEL
 // https://github.com/NeverPlayLegit/Rainbow-Fader-FastLED/blob/master/rainbow.ino
@@ -79,124 +91,215 @@ CRGB Scroll(int pos) {
   }
   return color;
 
-
-// +++ MODES +++ \\
-
-
-// ADHS WHITE
-void white_adhs() {
-  leds[NUM_LEDS] = CRGB(255, 255, 255);
-  delay(100);
-  FastLED.show();
-  leds[NUM_LEDS] = CRGB(0, 0, 0);
-  delay(100);
-  FastLED.show();
 }
 
-// RAINBOW
-void rainbow() {
-  for(int i = NUM_LEDS - 1; i >= 0; i--) {
+void music_rainbow() {
+  for (int i = NUM_LEDS - 1; i >= 0; i--)
+  {
     if (i < react)
+    {
       leds[i] = Scroll((i * 256 / 50 + k) % 256);
+    }
     else
+    {
       leds[i] = CRGB(0, 0, 0);
+    }
   }
   FastLED.show();
 }
 
-// ADHS COLOR
-void color_adhs() {
-  leds[NUM_LEDS] = CRGB(255, 0, 0); //rot
-  delay(70);
-  leds[NUM_LEDS] = CRGB(0, 255, 0); //grün
-  delay(70);
-  leds[NUM_LEDS] = CRGB(0, 0, 255); //blau
-  delay(70);
-  leds[NUM_LEDS] = CRGB(255, 255, 0); //gelb
-  delay(70);
-  leds[NUM_LEDS] = CRGB(255, 165, 0); //orange
-  delay(70);
-  leds[NUM_LEDS] = CRGB(0, 255, 255); //cyan
-  delay(70);
-  leds[NUM_LEDS] = CRGB(255, 0, 255); //magenta
-  delay(70);
+// FUNCTION TO GET AND SET COLOR
+// THE ORIGINAL FUNCTION WENT BACKWARDS
+// THE MODIFIED FUNCTION SENDS WAVES OUT FROM FIRST LED
+// https://github.com/NeverPlayLegit/Rainbow-Fader-FastLED/blob/master/rainbow.ino
 
-  FastLED.show();
-}
 
-// MUSIC
-void music_reactive() {
-  int audio_input = analogRead(audio) *3 - 900; // ADD x2 HERE FOR MORE SENSITIVITY
+// +++ MODES +++ \\
 
-  if (audio_input > 0) {
-    // TRANSLATE AUDIO LEVEL TO NUMBER OF LEDs
-    pre_react = ((long)NUM_LEDS * (long)audio_input) / 30L;
+void music_reactive()
+{
+  audio_input = analogRead(audio) *3 - 900; // ADD x2 HERE FOR MORE SENSITIVITY
 
-    // ONLY ADJUST LEVEL OF LED IF LEVEL HIGHER THAN CURRENT LEVEL
-    if (pre_react > react) {
+  if (audio_input > 0)
+  {
+    pre_react = ((long)NUM_LEDS * (long)audio_input) / 50L; // TRANSLATE AUDIO LEVEL TO NUMBER OF LEDs
+
+    if (pre_react > react) // ONLY ADJUST LEVEL OF LED IF LEVEL HIGHER THAN CURRENT LEVEL
+    {
       react = pre_react;
     }
-
-    Serial.print(audio_input);
+   Serial.print(audio_input);
     Serial.print(" -> ");
     Serial.print(pre_react);
     Serial.print(" -> ");
     Serial.println(react);
   }
 
-  // APPLY COLOR
-  rainbow();
+  music_rainbow(); // APPLY COLOR
 
-  // SPEED OF COLOR WHEEL
-  k = k - wheel_speed;
+  k = k - wheel_speed; // SPEED OF COLOR WHEEL
 
-  // RESET COLOR WHEEL
-  if (k < 0) { // RESET COLOR WHEEL
+  if (k < 0) // RESET COLOR WHEEL
+  {
     k = 255;
   }
-
   // REMOVE LEDs
   decay_check++;
 
-  if (decay_check > decay) {
+  if (decay_check > decay)
+  {
     decay_check = 0;
 
-    if (react > 0) {
-      react--;
-    }
+    if (react > 0)
+      {
+        react--;
+      }
+
   }
 }
 
-// Arduino LOOP
-void loop() {
-  // MODE AUSWAHL
-  if (digitalRead(buttonpin) == HIGH) {
+void rainbow()         // RAINBOW
+{
+  fill_rainbow( leds, NUM_LEDS, hue, 7);
+  FastLED.show();
+  hue++;
+}
 
-    if (mode == 3) {
-      mode = 1;
-    } else {
-      mode = mode + 1;
-    }
+void white_adhs()      // WHITE ADHS
+{
+  fill_solid( leds, NUM_LEDS, CRGB(255,255,255));
+  FastLED.show();
+  delay(40);
+  fill_solid( leds, NUM_LEDS, CRGB(0,0,0));
+  FastLED.show();
+  delay(40);
+}
+
+
+
+void color_adhs()
+{
+  fill_solid( leds, NUM_LEDS, CRGB(255, 0, 0));
+  FastLED.show();
+  delay(40);
+  fill_solid( leds, NUM_LEDS, CRGB(0, 255, 0));
+  FastLED.show();
+  delay(40);
+  fill_solid( leds, NUM_LEDS, CRGB(0, 0, 255));
+  FastLED.show();
+  delay(40);
+  fill_solid( leds, NUM_LEDS, CRGB(255, 255, 0));
+  FastLED.show();
+  delay(40);
+  fill_solid( leds, NUM_LEDS, CRGB(255, 165, 0));
+  FastLED.show();
+  delay(40);
+  fill_solid( leds, NUM_LEDS, CRGB(0, 255, 255));
+  FastLED.show();
+  delay(40);
+  fill_solid( leds, NUM_LEDS, CRGB(255, 0, 255));
+  FastLED.show();
+  delay(40);
+
+  FastLED.show();
+}
+
+
+void switchModeButton()
+{
+  if (digitalRead(buttonpin) == LOW)
+  {
+    return;
   }
 
-  Serial.println(mode);
+  if (modeTS < 4)
+  {
+    modeTS = modeTS + 1;
+    Serial.println("modeTS +1");
+    delay(1000);
+  }
+  else
+  {
+     modeTS = 0;
+     Serial.println("modeTS 0 (reset)");
+     delay(1000);
+   }
+}
 
-  switch (mode) {
+void switchModeIR()
+{
+  if (irrecv.decode(&results)) { //Wenn etwas gelesen wurde dann...
+    IRinput = results.value;
+
+  } //if(irrecv.decode(&results))
+} //void
+
+void loop()
+{
+
+  if (irrecv.decode(&results)) { //Wenn etwas gelesen wurde dann...
+      //Ausgabe des Wertes auf die Serielle Schnittstelle.
+      IRinput =  results.value;
+
+      irrecv.resume(); // auf den nächsten Wert warten
+      delay(250); // kurze Pause von 250ms damit die LED aufleuchten kann.
+
+      switch(IRinput) {
+
+      case 26775:
+        modeTS = 0;
+        break;
+      case 12495:
+        modeTS = 1;
+        audio_input = 0;
+        break;
+      case 6375:
+        modeTS = 2;
+        break;
+      case 31365:
+        modeTS = 3;
+        break;
+      case 4335:
+        modeTS = 4;
+        break;
+    } //switch(IRinput)
+
+ }
+
+  Serial.print(modeTS);
+  Serial.print(" - ");
+  Serial.println(IRinput);
+
+ // switchModeButton();
+ // switchModeIR();
+
+
+  switch (modeTS)
+  {
     case 0:
-      // undefinde mode
+      //Serial.println("case 0");
+      fill_solid(leds, NUM_LEDS, CRGB(0, 0, 0));
+      FastLED.show();
       break;
     case 1:
+      //Serial.println("case 1");
       music_reactive();
       break;
     case 2:
-      rainbow();
-      break;
-    case 3:
+      //Serial.println("case 2");
       white_adhs();
       break;
-    case 4:
+    case 3:
+      //Serial.println("case 3");
       color_adhs();
       break;
-  }
+    case 4:
+      //Serial.println("case 4");
+      rainbow();
+      break;
+  } //switch(modeTS)
 
-}
+
+  delay(20);
+
+} //loop
