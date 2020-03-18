@@ -9,7 +9,7 @@ void setup() {
 
 void loop() {
 
-  micro_val = analogRead(A0);
+  micro_val = analogRead(A5);
   Serial.println(micro_val);
   delay(100);
 
