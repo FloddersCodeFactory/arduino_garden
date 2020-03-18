@@ -4,14 +4,17 @@ RTC_DS3231 rtc;
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
 //Variables
+int water_hour = 17;
+int water_OnTime[] = {1000, 2000, 3000}; //on time in ms
+int light_time_on = 17;
+int light_time_off = 6;
+
+bool water_rem = 0;
+bool light_rem = 0;
 
 //pins
-int water1_pin = 30;
-int water2_pin = 31;
-int water3_pin = 32;
-int light1_pin = 33;
-int light2_pin = 34;
-
+int water_pin[] = {30, 31, 32};
+int light_pin = 33;
 
 
 void setup() {
@@ -44,5 +47,31 @@ void loop() {
 
   DateTime now = rtc.now();
 
+  //water
+  if (now.hour() == water_hour && water_rem == 0) {
+    for (int i = 0; i <= 3; i++) {
+      digitalWrite(water_pin[i], HIGH);
+      delay(water_OnTime[i]);
+      digitalWrite(water_pin[i], LOW);
+    }
+    water_rem++;
+  } //water
+
+  //reset water_rem
+  if (now.hour() == water_hour + 2) {
+    water_rem--;
+  } //reset water_rem
+
+
+
+  //light on
+  if (now.hour() == light_time_on) {
+    digitalWrite(light_pin, HIGH);
+  } //light on
+
+  //light off
+  if (now.hour() == light_time_off) {
+    digitalWrite(light_pin, LOW);
+  } //light off
 
 } //loop
